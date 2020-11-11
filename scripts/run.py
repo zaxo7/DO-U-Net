@@ -1,7 +1,7 @@
 """Run the model"""
 import glob
 
-from scripts import model
+import model
 
 
 def run_training(model_name):

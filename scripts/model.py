@@ -1,7 +1,7 @@
 """Return the model"""
 import tensorflow as tf
 
-from scripts import data
+import data
 
 
 class Conv2D_BN:
