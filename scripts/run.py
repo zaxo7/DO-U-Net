@@ -13,8 +13,8 @@ def run_training(model_name):
                             scale_invariant=True)
 
     do_unet.fit(model_name,
-                epochs=100,
-                imgs_per_epoch=1000,
+                epochs=1,
+                imgs_per_epoch=64,
                 batchsize=8,
                 workers=8)
 
