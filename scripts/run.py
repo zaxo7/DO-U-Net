@@ -17,6 +17,8 @@ def run_training(model_name):
                 imgs_per_epoch=64,
                 batchsize=8,
                 workers=8)
+    
+    return do_unet
 
 
 if __name__ == '__main__':
