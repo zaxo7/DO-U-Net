@@ -110,7 +110,7 @@ def get_callbacks(name):
     ]
 
 
-def get_do_unet_scale_invariant():
+def get_do_unet_scale_invariant(compile = True):
     np_filters = 32
 
     inputs = tf.keras.layers.Input((380, 380, 3))
@@ -167,19 +167,20 @@ def get_do_unet_scale_invariant():
 
     model = tf.keras.models.Model(inputs=inputs, outputs=(out_mask, out_edge))
 
-    opt = tf.optimizers.Adam(lr=0.0001)
-
-    model.compile(loss={'mask': tversky_loss,
-                        'edge': tversky_loss},
-                  loss_weights=[0.3, 0.7],
-                  optimizer=opt,
-                  metrics={'mask': [mean_iou, dsc, tversky], 
-                           'edge': [mean_iou, dsc, tversky]})
+    opt = tf.optimizers.Adam(learning_rate=0.0001)
+    
+    if compile:
+        model.compile(loss={'mask': tversky_loss,
+                            'edge': tversky_loss},
+                    loss_weights=[0.3, 0.7],
+                    optimizer=opt,
+                    metrics={'mask': [mean_iou, dsc, tversky], 
+                            'edge': [mean_iou, dsc, tversky]})
 
     return model
 
 
-def get_do_unet():
+def get_do_unet(compile = True):
     np_filters = 32
 
     inputs = tf.keras.layers.Input((188, 188, 3))
@@ -225,29 +226,30 @@ def get_do_unet():
 
     model = tf.keras.models.Model(inputs=inputs, outputs=(out_mask, out_edge))
 
-    opt = tf.optimizers.Adam(lr=0.0001)
-
-    model.compile(loss={'mask': tversky_loss,
-                        'edge': tversky_loss},
-                  loss_weights=[0.3, 0.7],
-                  optimizer=opt,
-                  metrics={'mask': [mean_iou, dsc, tversky], 
-                           'edge': [mean_iou, dsc, tversky]})
+    opt = tf.optimizers.Adam(learning_rate=0.001)
+    
+    if compile:
+        model.compile(loss={'mask': dice_loss,
+                            'edge': dice_loss},
+                        loss_weights=[0.3, 0.7],
+                        optimizer=opt,
+                        metrics={'mask': [mean_iou, dsc, tversky], 
+                                'edge': [mean_iou, dsc, tversky]})
 
     return model
 
 
 class DO_UNet:
-    def __init__(self, train_files, test_files, scale_invariant=True):
+    def __init__(self, train_files, test_files, scale_invariant=True, compile = True):
         self.scale_invariant = scale_invariant
 
         self.train_dataset = self.generate_train_dataset(train_files)
         self.test_dataset = self.generate_test_dataset(test_files)
 
         if self.scale_invariant:
-            self.model = get_do_unet_scale_invariant()
+            self.model = get_do_unet_scale_invariant(compile)
         else:
-            self.model = get_do_unet()
+            self.model = get_do_unet(compile)
 
     def generate_train_dataset(self, img_files):
         imgs, mask, edge = data.load_data(img_files)
@@ -299,11 +301,11 @@ class DO_UNet:
                                                    (mask_chips, edge_chips))
                                                  )
 
-    def compile(self, optimiser='adam', learning_rate=0.001):
+    def compile(self, optimiser='adam', learning_rate=0.0001):
         if optimiser == 'adam':
-            opt = tf.optimizers.Adam(lr=learning_rate)
+            opt = tf.optimizers.Adam(learning_rate=learning_rate)
         elif optimiser == 'sgd':
-            opt = tf.optimizers.SGD(lr=learning_rate)
+            opt = tf.optimizers.SGD(learning_rate=learning_rate)
 
             self.model.compile(loss={'mask': tversky_loss,
                                      'edge': tversky_loss},
